@@ -1,0 +1,6 @@
+project_name: floating
+
+windows:
+  - editor: vi
+  - cli:
+  - server: live-server
