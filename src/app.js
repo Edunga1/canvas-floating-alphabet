@@ -9,7 +9,12 @@ class Canvas {
     this.container = container
     this.canvas = this.#createCanvas(width, height)
     this.container.appendChild(this.canvas)
+    /** @type {CanvasRenderingContext2D} */
     this.context = this.canvas.getContext("2d")
+  }
+
+  get width() {
+    return this.canvas.width
   }
 
   get height() {
@@ -46,13 +51,24 @@ class Canvas {
 
 class World {
   constructor(canvas) {
+    this.velocityRange = 0.1
     this.canvas = canvas
     this.word = ''
+    this.entities = [
+      {
+        c: '!',
+        x: 100,
+        y: 100,
+        size: 20,
+        velocity: {x: 0, y: 0},
+      },
+    ]
   }
 
   run(word = 'unknown') {
     const that = this
     this.word = word
+    this.#initWord()
 
     requestAnimationFrame(function tick() {
       that.#update()
@@ -62,18 +78,36 @@ class World {
   }
 
   #update() {
-    // TODO: update entities
+    this.entities.forEach(i => {
+      i.x += i.velocity.x
+      i.y += i.velocity.y
+    })
   }
 
   #render() {
     this.canvas.draw((canvas) => {
-      canvas.addText(`${this.word}`, 100, 100)
+      this.entities.forEach(i => {
+        canvas.addText(i.c, i.x, i.y, i.size)
+      })
     })
+  }
+
+  #initWord() {
+    this.entities = this.word.split('').map((c, i) => ({
+      c: c,
+      x: this.canvas.width / 2 + i * 20,
+      y: this.canvas.height / 2,
+      s: 20,
+      velocity: {
+        x: Math.random() * this.velocityRange - this.velocityRange / 2,
+        y: Math.random() * this.velocityRange - this.velocityRange / 2,
+      },
+    }))
   }
 }
 
 function main() {
-  const word = new URLSearchParams(window.location.search).get("w") ?? 'Hello, World!'
+  const word = new URLSearchParams(window.location.search).get("w") ?? 'HELLO,WORLD!'
   const canvas = new Canvas(
     document,
     document.body,
