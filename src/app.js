@@ -53,7 +53,10 @@ class World {
   constructor(canvas) {
     this.velocityRange = 0.1
     this.canvas = canvas
+
     this.word = ''
+    this.wordSize = 20
+
     this.entities = [
       {
         c: '!',
@@ -67,8 +70,7 @@ class World {
 
   run(word = 'unknown') {
     const that = this
-    this.word = word
-    this.#initWord()
+    this.#initWord(word)
 
     requestAnimationFrame(function tick() {
       that.#update()
@@ -92,12 +94,18 @@ class World {
     })
   }
 
-  #initWord() {
+  #initWord(word) {
+    this.word = word
+    const maxCanvasWidth = this.canvas.width * 0.8
+    const wordWidth = this.word.length * this.wordSize
+    const maxWidth = Math.min(maxCanvasWidth, wordWidth)
+    const padding = maxWidth / this.word.length
+
     this.entities = this.word.split('').map((c, i) => ({
       c: c,
-      x: this.canvas.width / 2 + i * 20,
+      x: this.canvas.width / 2 - maxWidth / 2 + i * padding,
       y: this.canvas.height / 2,
-      s: 20,
+      s: this.wordSize,
       velocity: {
         x: Math.random() * this.velocityRange - this.velocityRange / 2,
         y: Math.random() * this.velocityRange - this.velocityRange / 2,
