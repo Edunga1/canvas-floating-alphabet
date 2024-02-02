@@ -79,6 +79,16 @@ class World {
     })
   }
 
+  resize(width, height) {
+    const ratioX = width / this.canvas.width
+    const ratioY = height / this.canvas.height
+    this.canvas.resize(window.innerWidth, window.innerHeight)
+    this.entities.forEach(i => {
+      i.x = i.x * ratioX
+      i.y = i.y * ratioY
+    })
+  }
+
   #update() {
     this.entities.forEach(i => {
       i.x += i.velocity.x
@@ -124,11 +134,12 @@ function main() {
   )
 
   // run app
-  new World(canvas).run(word)
+  const world = new World(canvas)
+  world.run(word)
 
   // on resize
   window.addEventListener("resize", () => {
-    canvas.resize(window.innerWidth, window.innerHeight)
+    world.resize(window.innerWidth, window.innerHeight)
   })
 }
 
