@@ -2,12 +2,10 @@ class Canvas {
   constructor(
     document,
     container,
-    width,
-    height,
   ) {
     this.document = document
     this.container = container
-    this.canvas = this.#createCanvas(width, height)
+    this.canvas = this.#createCanvas()
     this.container.appendChild(this.canvas)
     /** @type {CanvasRenderingContext2D} */
     this.context = this.canvas.getContext("2d")
@@ -21,10 +19,8 @@ class Canvas {
     return this.canvas.height
   }
 
-  #createCanvas(width, height) {
+  #createCanvas() {
     const canvas = this.document.createElement("canvas")
-    canvas.width = width
-    canvas.height = height
     return canvas
   }
 
@@ -36,7 +32,7 @@ class Canvas {
   addText(text, x, y, size = 20) {
     this.context.fillStyle = "white"
     this.context.font = `${size}px Arial`
-    this.context.fillText(text, x, y)
+    this.context.fillText(text, x, y + size)
   }
 
   draw(func) {
@@ -51,21 +47,23 @@ class Canvas {
 
 class World {
   constructor(canvas) {
-    this.velocityRange = 0.1
+    this.velocityRange = .1
     this.canvas = canvas
 
     this.word = ''
     this.wordSize = 20
 
-    this.entities = [
+    this.alphabets = [
       {
-        c: '!',
-        x: 100,
-        y: 100,
-        size: 20,
-        velocity: {x: 0, y: 0},
+        c: 'dummy(unused)',
+        pos: { x: 100, y: 100 },
+        w: 20,
+        h: 20,
+        sz: 20,
+        v: { x: 0, y: 0 },
       },
     ]
+    this.walls = []
   }
 
   run(word = 'unknown') {
@@ -83,23 +81,40 @@ class World {
     const ratioX = width / this.canvas.width
     const ratioY = height / this.canvas.height
     this.canvas.resize(window.innerWidth, window.innerHeight)
-    this.entities.forEach(i => {
-      i.x = i.x * ratioX
-      i.y = i.y * ratioY
+    this.alphabets.forEach(i => {
+      i.pos.x = i.pos.x * ratioX
+      i.pos.y = i.pos.y * ratioY
     })
+    this.walls = [
+      { pos: { x: -100, y: -100 }, w: width + 200, h: 100 }, // upper
+      { pos: { x: -100, y: height }, w: width + 200, h: 100 }, // lower
+      { pos: { x: -100, y: 0 }, w: 100, h: height }, // left
+      { pos: { x: width, y: 0 }, w: 100, h: height }, // right
+    ]
   }
 
   #update() {
-    this.entities.forEach(i => {
-      i.x += i.velocity.x
-      i.y += i.velocity.y
+    this.alphabets.forEach(i => {
+      this.walls.forEach(w => {
+        if (
+          i.pos.x < w.pos.x + w.w &&
+          i.pos.x + i.w > w.pos.x &&
+          i.pos.y < w.pos.y + w.h &&
+          i.pos.y + i.h > w.pos.y
+        ) {
+          i.v.x *= -1
+          i.v.y *= -1
+        }
+      })
+      i.pos.x += i.v.x
+      i.pos.y += i.v.y
     })
   }
 
   #render() {
     this.canvas.draw((canvas) => {
-      this.entities.forEach(i => {
-        canvas.addText(i.c, i.x, i.y, i.size)
+      this.alphabets.forEach(i => {
+        canvas.addText(i.c, i.pos.x, i.pos.y, i.sz)
       })
     })
   }
@@ -111,12 +126,16 @@ class World {
     const maxWidth = Math.min(maxCanvasWidth, wordWidth)
     const padding = maxWidth / this.word.length
 
-    this.entities = this.word.split('').map((c, i) => ({
+    this.alphabets = this.word.split('').map((c, i) => ({
       c: c,
-      x: this.canvas.width / 2 - maxWidth / 2 + i * padding,
-      y: this.canvas.height / 2,
-      s: this.wordSize,
-      velocity: {
+      pos: {
+        x: this.canvas.width / 2 - maxWidth / 2 + i * padding,
+        y: this.canvas.height / 2,
+      },
+      w: this.wordSize,
+      h: this.wordSize,
+      sz: this.wordSize,
+      v: {
         x: Math.random() * this.velocityRange - this.velocityRange / 2,
         y: Math.random() * this.velocityRange - this.velocityRange / 2,
       },
@@ -129,8 +148,6 @@ function main() {
   const canvas = new Canvas(
     document,
     document.body,
-    window.innerWidth,
-    window.innerHeight,
   )
 
   // run app
@@ -138,6 +155,9 @@ function main() {
   world.run(word)
 
   // on resize
+  window.addEventListener("load", () => {
+    world.resize(window.innerWidth, window.innerHeight)
+  })
   window.addEventListener("resize", () => {
     world.resize(window.innerWidth, window.innerHeight)
   })
