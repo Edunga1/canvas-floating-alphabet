@@ -152,11 +152,11 @@ function main() {
 
   // run app
   const world = new World(canvas)
-  world.run(word)
 
   // on resize
   window.addEventListener("load", () => {
     world.resize(window.innerWidth, window.innerHeight)
+    world.run(word)
   })
   window.addEventListener("resize", () => {
     world.resize(window.innerWidth, window.innerHeight)
