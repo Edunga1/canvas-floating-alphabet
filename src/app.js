@@ -94,13 +94,15 @@ class World {
   }
 
   #update() {
+    const opponents = this.alphabets.concat(this.walls)
     this.alphabets.forEach(i => {
-      this.walls.forEach(w => {
+      opponents.forEach(j => {
+        if (i === j) return
         if (
-          i.pos.x < w.pos.x + w.w &&
-          i.pos.x + i.w > w.pos.x &&
-          i.pos.y < w.pos.y + w.h &&
-          i.pos.y + i.h > w.pos.y
+          i.pos.x < j.pos.x + j.w &&
+          i.pos.x + i.w > j.pos.x &&
+          i.pos.y < j.pos.y + j.h &&
+          i.pos.y + i.h > j.pos.y
         ) {
           i.v.x *= -1
           i.v.y *= -1
@@ -132,8 +134,8 @@ class World {
         x: this.canvas.width / 2 - maxWidth / 2 + i * padding,
         y: this.canvas.height / 2,
       },
-      w: this.wordSize,
-      h: this.wordSize,
+      w: this.wordSize / 2,
+      h: this.wordSize / 2,
       sz: this.wordSize,
       v: {
         x: Math.random() * this.velocityRange - this.velocityRange / 2,
