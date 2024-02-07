@@ -9,6 +9,7 @@ class Canvas {
     this.container.appendChild(this.canvas)
     /** @type {CanvasRenderingContext2D} */
     this.context = this.canvas.getContext("2d")
+    this.isTransparent = false
   }
 
   get width() {
@@ -30,18 +31,25 @@ class Canvas {
   }
 
   addText(text, x, y, size = 20) {
-    this.context.fillStyle = "white"
+    const color = this.isTransparent ? "black" : "white"
+    this.context.fillStyle = color
     this.context.font = `${size}px Arial`
     this.context.fillText(text, x, y + size)
   }
 
   draw(func) {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    this.context.fillStyle = "black"
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
+    if (!this.isTransparent) {
+      this.context.fillStyle = "black"
+      this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
+    }
     this.context.save()
     func(this)
     this.context.restore()
+  }
+
+  setTransparentBackground() {
+    this.isTransparent = true
   }
 }
 
@@ -147,10 +155,14 @@ class World {
 
 function main() {
   const word = new URLSearchParams(window.location.search).get("w") ?? 'HELLO,WORLD!'
+  const isTransparent = new URLSearchParams(window.location.search).get("t") === '1'
   const canvas = new Canvas(
     document,
     document.body,
   )
+  if (isTransparent) {
+    canvas.setTransparentBackground()
+  }
 
   // run app
   const world = new World(canvas)
