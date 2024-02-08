@@ -54,12 +54,12 @@ class Canvas {
 }
 
 class World {
-  constructor(canvas) {
+  constructor(canvas, wordSize = 20) {
     this.velocityRange = .1
     this.canvas = canvas
 
     this.word = ''
-    this.wordSize = 20
+    this.wordSize = wordSize
 
     this.alphabets = [
       {
@@ -157,6 +157,7 @@ function main() {
   const params = new URLSearchParams(window.location.search)
   const word = params.get("w") ?? 'HELLO,WORLD!'
   const isTransparent = params.get("t") === '1'
+  const size = params.get("s") ?? 20
   const canvas = new Canvas(
     document,
     document.body,
@@ -166,7 +167,7 @@ function main() {
   }
 
   // run app
-  const world = new World(canvas)
+  const world = new World(canvas, size)
 
   // on resize
   window.addEventListener("load", () => {
