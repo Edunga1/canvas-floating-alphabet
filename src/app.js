@@ -154,8 +154,9 @@ class World {
 }
 
 function main() {
-  const word = new URLSearchParams(window.location.search).get("w") ?? 'HELLO,WORLD!'
-  const isTransparent = new URLSearchParams(window.location.search).get("t") === '1'
+  const params = new URLSearchParams(window.location.search)
+  const word = params.get("w") ?? 'HELLO,WORLD!'
+  const isTransparent = params.get("t") === '1'
   const canvas = new Canvas(
     document,
     document.body,
