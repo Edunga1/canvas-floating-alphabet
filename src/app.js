@@ -52,12 +52,47 @@ class Canvas {
   }
 }
 
+export default class Vector {
+  constructor(x = 0, y = 0) {
+    this.x = x
+    this.y = y
+  }
+
+  add(vector) {
+    return new Vector(this.x + vector.x, this.y + vector.y)
+  }
+
+  subtr(vector) {
+    return new Vector(this.x - vector.x, this.y - vector.y)
+  }
+
+  mag() {
+    return Math.sqrt(this.x ** 2 + this.y ** 2)
+  }
+
+  unit() {
+    const mag = this.mag()
+    if (mag === 0) {
+      return new Vector(0, 0)
+    }
+    return new Vector(this.x / mag, this.y / mag)
+  }
+
+  multiply(scalar) {
+    return new Vector(this.x * scalar, this.y * scalar)
+  }
+
+  dot(vector) {
+    return this.x * vector.x + this.y * vector.y
+  }
+}
+
 class Particle {
   constructor({
     info = '',
-    pos = { x: 0, y: 0 },
+    pos = new Vector(),
     radius = 20,
-    velocity = { x: 0, y: 0 },
+    velocity = new Vector(),
   }) {
     this.info = info
     this.pos = pos
@@ -67,28 +102,30 @@ class Particle {
   }
   collide(particle) {
     if (!this.#intersects(particle)) return
-    const dx = this.pos.x - particle.pos.x
-    const dy = this.pos.y - particle.pos.y
-    const angle = Math.atan2(dy, dx)
-    const targetX = this.pos.x + Math.cos(angle)
-    const targetY = this.pos.y + Math.sin(angle)
-    const ax = targetX - particle.pos.x
-    const ay = targetY - particle.pos.y
-    particle.pos.x += ax
-    particle.pos.y += ay
-    this.pos.x -= ax
-    this.pos.y -= ay
+    const newVelocity = this.#calcVelocity(particle)
+    const newParticleVelocity = particle.#calcVelocity(this)
+    this.velocity = newVelocity
+    particle.velocity = newParticleVelocity
   }
   forward() {
-    this.pos.x += this.velocity.x
-    this.pos.y += this.velocity.y
+    this.pos = this.#nextPos()
+  }
+  #nextPos() {
+    return this.pos.add(this.velocity)
   }
   #intersects(particle) {
-    const mag = Math.sqrt(
-      Math.pow(this.pos.x - particle.pos.x, 2) +
-      Math.pow(this.pos.y - particle.pos.y, 2)
+    const pos = this.#nextPos()
+    return this.radius + particle.radius >= pos.subtr(particle.pos).mag()
+  }
+  #calcVelocity(particle) {
+    return this.velocity.subtr(
+      this.pos.subtr(particle.pos)
+        .unit()
+        .multiply(
+          this.velocity.subtr(particle.velocity)
+            .dot(this.pos.subtr(particle.pos).unit())
+        )
     )
-    return this.radius + particle.radius >= mag
   }
 }
 
@@ -139,9 +176,8 @@ class World {
       return
     }
 
-    const opponents = this.fragments
     this.fragments.forEach(i => {
-      opponents.forEach(j => {
+      this.fragments.forEach(j => {
         if (i === j) return
         i.collide(j)
       })
@@ -181,15 +217,15 @@ class World {
             if (cell !== 1) return undefined
             return new Particle({
               info: letter,
-              pos: {
-                x: leftMargin - maxWidth / 2 + x * padding + seq * this.wordSize * 5,
-                y: this.canvas.height / 2 + y * padding,
-              },
+              pos: new Vector(
+                leftMargin - maxWidth / 2 + x * padding + seq * this.wordSize * 5,
+                this.canvas.height / 2 + y * padding,
+              ),
               radius: this.wordSize / 2,
-              velocity: {
-                x: Math.random() * this.velocityRange - this.velocityRange / 2,
-                y: Math.random() * this.velocityRange - this.velocityRange / 2,
-              },
+              velocity: new Vector(
+                Math.random() * this.velocityRange - this.velocityRange / 2,
+                Math.random() * this.velocityRange - this.velocityRange / 2,
+              ),
             })
           })
             .filter(i => i !== undefined)
