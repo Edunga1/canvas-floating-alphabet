@@ -193,10 +193,9 @@ async function main() {
   const world = new World(canvas, matrix, size)
 
   // on resize
-  window.addEventListener("load", () => {
-    world.resize(window.innerWidth, window.innerHeight)
-    world.run(word)
-  })
+  world.resize(window.innerWidth, window.innerHeight)
+  world.run(word)
+
   window.addEventListener("resize", () => {
     world.resize(window.innerWidth, window.innerHeight)
   })
