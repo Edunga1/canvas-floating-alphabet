@@ -52,6 +52,46 @@ class Canvas {
   }
 }
 
+class Particle {
+  constructor({
+    info = '',
+    pos = { x: 0, y: 0 },
+    radius = 20,
+    velocity = { x: 0, y: 0 },
+  }) {
+    this.info = info
+    this.pos = pos
+    this.radius = radius
+    this.radius = radius
+    this.velocity = velocity
+  }
+  collide(particle) {
+    if (!this.#intersects(particle)) return
+    const dx = this.pos.x - particle.pos.x
+    const dy = this.pos.y - particle.pos.y
+    const angle = Math.atan2(dy, dx)
+    const targetX = this.pos.x + Math.cos(angle)
+    const targetY = this.pos.y + Math.sin(angle)
+    const ax = targetX - particle.pos.x
+    const ay = targetY - particle.pos.y
+    particle.pos.x += ax
+    particle.pos.y += ay
+    this.pos.x -= ax
+    this.pos.y -= ay
+  }
+  forward() {
+    this.pos.x += this.velocity.x
+    this.pos.y += this.velocity.y
+  }
+  #intersects(particle) {
+    const mag = Math.sqrt(
+      Math.pow(this.pos.x - particle.pos.x, 2) +
+      Math.pow(this.pos.y - particle.pos.y, 2)
+    )
+    return this.radius + particle.radius >= mag
+  }
+}
+
 class World {
   constructor(
     canvas,
@@ -60,7 +100,7 @@ class World {
     delay = 120,
   ) {
     this.delay = delay
-    this.velocityRange = .03
+    this.velocityRange = 1
     this.canvas = canvas
 
     /** @type {Object<string, number[][]>} */
@@ -68,17 +108,8 @@ class World {
     this.word = ''
     this.wordSize = wordSize
 
-    this.fragments = [
-      {
-        c: 'dummy(unused)',
-        pos: { x: 100, y: 100 },
-        w: 20,
-        h: 20,
-        sz: 20,
-        v: { x: 0, y: 0 },
-      },
-    ]
-    this.walls = []
+    /** @type {Particle[]} */
+    this.fragments = []
   }
 
   run(word = 'unknown') {
@@ -100,12 +131,6 @@ class World {
       i.pos.x = i.pos.x * ratioX
       i.pos.y = i.pos.y * ratioY
     })
-    this.walls = [
-      { pos: { x: -100, y: -100 }, w: width + 200, h: 100 }, // upper
-      { pos: { x: -100, y: height }, w: width + 200, h: 100 }, // lower
-      { pos: { x: -100, y: 0 }, w: 100, h: height }, // left
-      { pos: { x: width, y: 0 }, w: 100, h: height }, // right
-    ]
   }
 
   #update() {
@@ -114,28 +139,28 @@ class World {
       return
     }
 
-    const opponents = this.fragments.concat(this.walls)
+    const opponents = this.fragments
     this.fragments.forEach(i => {
       opponents.forEach(j => {
         if (i === j) return
-        if (
-          i.pos.x < j.pos.x + j.w &&
-          i.pos.x + i.w > j.pos.x &&
-          i.pos.y < j.pos.y + j.h &&
-          i.pos.y + i.h > j.pos.y
-        ) {
-          i.v.x *= -1
-          i.v.y *= -1
-        }
+        i.collide(j)
       })
-      i.pos.x += i.v.x
-      i.pos.y += i.v.y
+      // bounce off the wall
+      if (i.pos.x - i.radius < 0 || i.pos.x + i.radius > this.canvas.width) {
+        i.velocity.x *= -1
+      }
+      if (i.pos.y - i.radius < 0 || i.pos.y + i.radius > this.canvas.height) {
+        i.velocity.y *= -1
+      }
+      i.forward()
     })
   }
 
   #render() {
     this.canvas.draw((canvas) => {
-      this.fragments.forEach(i => canvas.addParticle(i.pos.x, i.pos.y, i.sz))
+      this.fragments.forEach(i => {
+        canvas.addParticle(i.pos.x, i.pos.y, i.radius*2)
+      })
     })
   }
 
@@ -154,20 +179,18 @@ class World {
         return matrix.map((row, y) => {
           return row.map((cell, x) => {
             if (cell !== 1) return undefined
-            return {
-              c: letter,
+            return new Particle({
+              info: letter,
               pos: {
                 x: leftMargin - maxWidth / 2 + x * padding + seq * this.wordSize * 5,
                 y: this.canvas.height / 2 + y * padding,
               },
-              w: this.wordSize / 2,
-              h: this.wordSize / 2,
-              sz: this.wordSize,
-              v: {
+              radius: this.wordSize / 2,
+              velocity: {
                 x: Math.random() * this.velocityRange - this.velocityRange / 2,
                 y: Math.random() * this.velocityRange - this.velocityRange / 2,
               },
-            }
+            })
           })
             .filter(i => i !== undefined)
         })
