@@ -100,7 +100,7 @@ class World {
     delay = 120,
   ) {
     this.delay = delay
-    this.velocityRange = 1
+    this.velocityRange = .03
     this.canvas = canvas
 
     /** @type {Object<string, number[][]>} */
