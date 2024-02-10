@@ -30,11 +30,10 @@ class Canvas {
     this.canvas.height = height
   }
 
-  addText(text, x, y, size = 20) {
+  addParticle(x, y, size = 20) {
     const color = this.isTransparent ? "black" : "white"
     this.context.fillStyle = color
-    this.context.font = `${size}px Arial`
-    this.context.fillText(text, x, y + size)
+    this.context.fillRect(x, y, size, size)
   }
 
   draw(func) {
@@ -54,14 +53,20 @@ class Canvas {
 }
 
 class World {
-  constructor(canvas, wordSize = 20) {
-    this.velocityRange = .1
+  constructor(
+    canvas,
+    characterMatrix,
+    wordSize = 20,
+  ) {
+    this.velocityRange = .03
     this.canvas = canvas
 
+    /** @type {Object<string, number[][]>} */
+    this.characterMatrix = characterMatrix
     this.word = ''
     this.wordSize = wordSize
 
-    this.alphabets = [
+    this.fragments = [
       {
         c: 'dummy(unused)',
         pos: { x: 100, y: 100 },
@@ -89,7 +94,7 @@ class World {
     const ratioX = width / this.canvas.width
     const ratioY = height / this.canvas.height
     this.canvas.resize(window.innerWidth, window.innerHeight)
-    this.alphabets.forEach(i => {
+    this.fragments.forEach(i => {
       i.pos.x = i.pos.x * ratioX
       i.pos.y = i.pos.y * ratioY
     })
@@ -102,8 +107,8 @@ class World {
   }
 
   #update() {
-    const opponents = this.alphabets.concat(this.walls)
-    this.alphabets.forEach(i => {
+    const opponents = this.fragments.concat(this.walls)
+    this.fragments.forEach(i => {
       opponents.forEach(j => {
         if (i === j) return
         if (
@@ -123,9 +128,7 @@ class World {
 
   #render() {
     this.canvas.draw((canvas) => {
-      this.alphabets.forEach(i => {
-        canvas.addText(i.c, i.pos.x, i.pos.y, i.sz)
-      })
+      this.fragments.forEach(i => canvas.addParticle(i.pos.x, i.pos.y, i.sz))
     })
   }
 
@@ -134,40 +137,60 @@ class World {
     const maxCanvasWidth = this.canvas.width * 0.8
     const wordWidth = this.word.length * this.wordSize
     const maxWidth = Math.min(maxCanvasWidth, wordWidth)
-    const padding = maxWidth / this.word.length
+    const padding = this.wordSize
+    const leftMargin = (this.canvas.width - maxWidth) / 3
 
-    this.alphabets = this.word.split('').map((c, i) => ({
-      c: c,
-      pos: {
-        x: this.canvas.width / 2 - maxWidth / 2 + i * padding,
-        y: this.canvas.height / 2,
-      },
-      w: this.wordSize / 2,
-      h: this.wordSize / 2,
-      sz: this.wordSize,
-      v: {
-        x: Math.random() * this.velocityRange - this.velocityRange / 2,
-        y: Math.random() * this.velocityRange - this.velocityRange / 2,
-      },
-    }))
+    this.fragments = this.word
+      .split('')
+      .map((letter, seq) => {
+        const matrix = this.characterMatrix[letter] ?? []
+        return matrix.map((row, y) => {
+          return row.map((cell, x) => {
+            if (cell !== 1) return undefined
+            return {
+              c: letter,
+              pos: {
+                x: leftMargin - maxWidth / 2 + x * padding + seq * this.wordSize * 5,
+                y: this.canvas.height / 2 + y * padding,
+              },
+              w: this.wordSize / 2,
+              h: this.wordSize / 2,
+              sz: this.wordSize,
+              v: {
+                x: Math.random() * this.velocityRange - this.velocityRange / 2,
+                y: Math.random() * this.velocityRange - this.velocityRange / 2,
+              },
+            }
+          })
+            .filter(i => i !== undefined)
+        })
+          .flat()
+      })
+      .flat()
   }
 }
 
-function main() {
+async function getCharacterMatrix() {
+  return (await fetch('./src/mappings.json')).json()
+}
+
+async function main() {
   const params = new URLSearchParams(window.location.search)
-  const word = params.get("w") ?? 'HELLO,WORLD!'
-  const isTransparent = params.get("t") === '1'
+  const word = params.get("w") ?? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   const size = params.get("s") ?? 20
+  const isTransparent = params.get("t") === '1'
+  const matrix = await getCharacterMatrix()
   const canvas = new Canvas(
     document,
     document.body,
   )
+
   if (isTransparent) {
     canvas.setTransparentBackground()
   }
 
   // run app
-  const world = new World(canvas, size)
+  const world = new World(canvas, matrix, size)
 
   // on resize
   window.addEventListener("load", () => {
