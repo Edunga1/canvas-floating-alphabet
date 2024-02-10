@@ -57,7 +57,9 @@ class World {
     canvas,
     characterMatrix,
     wordSize = 20,
+    delay = 120,
   ) {
+    this.delay = delay
     this.velocityRange = .03
     this.canvas = canvas
 
@@ -107,6 +109,11 @@ class World {
   }
 
   #update() {
+    if (this.delay > 0) {
+      this.delay--
+      return
+    }
+
     const opponents = this.fragments.concat(this.walls)
     this.fragments.forEach(i => {
       opponents.forEach(j => {
@@ -177,8 +184,9 @@ async function getCharacterMatrix() {
 async function main() {
   const params = new URLSearchParams(window.location.search)
   const word = params.get("w") ?? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  const size = params.get("s") ?? 20
+  const size = params.get("s") ?? 5
   const isTransparent = params.get("t") === '1'
+  const delay = params.get("d") ?? 120
   const matrix = await getCharacterMatrix()
   const canvas = new Canvas(
     document,
@@ -190,7 +198,12 @@ async function main() {
   }
 
   // run app
-  const world = new World(canvas, matrix, size)
+  const world = new World(
+    canvas,
+    matrix,
+    size,
+    delay,
+  )
 
   // on resize
   world.resize(window.innerWidth, window.innerHeight)
