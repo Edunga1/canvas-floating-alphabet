@@ -89,7 +89,7 @@ export default class Vector {
 
 class Particle {
   constructor({
-    info = '',
+    info = "",
     pos = new Vector(),
     radius = 20,
     velocity = new Vector(),
@@ -142,14 +142,14 @@ class World {
 
     /** @type {Object<string, number[][]>} */
     this.characterMatrix = characterMatrix
-    this.word = ''
+    this.word = ""
     this.wordSize = wordSize
 
     /** @type {Particle[]} */
     this.fragments = []
   }
 
-  run(word = 'unknown') {
+  run(word = "unknown") {
     const that = this
     this.#initWord(word)
 
@@ -209,7 +209,7 @@ class World {
     const leftMargin = (this.canvas.width - maxWidth) / 3
 
     this.fragments = this.word
-      .split('')
+      .split("")
       .map((letter, seq) => {
         const matrix = this.characterMatrix[letter] ?? []
         return matrix.map((row, y) => {
@@ -237,14 +237,14 @@ class World {
 }
 
 async function getCharacterMatrix() {
-  return (await fetch('./src/mappings.json')).json()
+  return (await fetch("./src/mappings.json")).json()
 }
 
 async function main() {
   const params = new URLSearchParams(window.location.search)
-  const word = params.get("w") ?? 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const word = params.get("w") ?? "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   const size = params.get("s") ?? 5
-  const isTransparent = params.get("t") === '1'
+  const isTransparent = params.get("t") === "1"
   const delay = params.get("d") ?? 120
   const matrix = await getCharacterMatrix()
   const canvas = new Canvas(
