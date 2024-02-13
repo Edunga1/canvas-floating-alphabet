@@ -136,10 +136,15 @@ class World {
     wordSize = 20,
     delay = 120,
     velocityRange = .03,
+    impactEnabled = false,
   ) {
+    this.ticks = 0
     this.delay = delay
+    this.paused = delay > 0
     this.velocityRange = velocityRange
     this.canvas = canvas
+    this.impactEnabled = impactEnabled
+    this.impactedDistance = wordSize * 4
 
     /** @type {Object<string, number[][]>} */
     this.characterMatrix = characterMatrix
@@ -171,11 +176,21 @@ class World {
     })
   }
 
+  impact(x, y) {
+    if (!this.impactEnabled) return
+    const impacted = new Vector(x, y)
+    this.fragments
+      .filter(i => i.pos.subtr(impacted).mag() < this.impactedDistance)
+      .forEach(i => {
+        i.velocity = i.pos.subtr(impacted).multiply(0.1)
+      })
+    this.paused = false
+  }
+
   #update() {
-    if (this.delay > 0) {
-      this.delay--
-      return
-    }
+    this.ticks++
+
+    if (this.#checkPaused()) return
 
     this.fragments.forEach(i => {
       this.fragments.forEach(j => {
@@ -235,6 +250,12 @@ class World {
       })
       .flat()
   }
+
+  #checkPaused() {
+    if (!this.paused) return false
+    this.paused = this.ticks < this.delay
+    return this.paused
+  }
 }
 
 async function getCharacterMatrix() {
@@ -248,6 +269,7 @@ async function main() {
   const isTransparent = params.get("t") === "1"
   const delay = params.get("d") ?? 120
   const velocity = params.get("v") ?? 0.03
+  const impactEnabled = params.get("i") === "1"
   const matrix = await getCharacterMatrix()
   const canvas = new Canvas(document, document.body)
 
@@ -262,6 +284,7 @@ async function main() {
     size,
     delay,
     velocity,
+    impactEnabled,
   )
 
   // on resize
@@ -270,6 +293,13 @@ async function main() {
 
   window.addEventListener("resize", () => {
     world.resize(window.innerWidth, window.innerHeight)
+  })
+
+  window.addEventListener("touchstart", e => {
+    world.impact(e.touches[0].clientX, e.touches[0].clientY)
+  })
+  window.addEventListener("click", e => {
+    world.impact(e.clientX, e.clientY)
   })
 }
 
