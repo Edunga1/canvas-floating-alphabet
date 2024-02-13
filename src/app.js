@@ -135,9 +135,10 @@ class World {
     characterMatrix,
     wordSize = 20,
     delay = 120,
+    velocityRange = .03,
   ) {
     this.delay = delay
-    this.velocityRange = .03
+    this.velocityRange = velocityRange
     this.canvas = canvas
 
     /** @type {Object<string, number[][]>} */
@@ -246,11 +247,9 @@ async function main() {
   const size = params.get("s") ?? 5
   const isTransparent = params.get("t") === "1"
   const delay = params.get("d") ?? 120
+  const velocity = params.get("v") ?? 0.03
   const matrix = await getCharacterMatrix()
-  const canvas = new Canvas(
-    document,
-    document.body,
-  )
+  const canvas = new Canvas(document, document.body)
 
   if (isTransparent) {
     canvas.setTransparentBackground()
@@ -262,6 +261,7 @@ async function main() {
     matrix,
     size,
     delay,
+    velocity,
   )
 
   // on resize
