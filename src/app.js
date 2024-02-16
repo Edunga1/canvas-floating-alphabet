@@ -264,7 +264,7 @@ async function getCharacterMatrix() {
 
 async function main() {
   const params = new URLSearchParams(window.location.search)
-  const word = params.get("w") ?? "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  const word = (params.get("w") ?? "ABCDEFGHIJKLMNOPQRSTUVWXYZ").toUpperCase()
   const size = params.get("s") ?? 5
   const isTransparent = params.get("t") === "1"
   const delay = params.get("d") ?? 120
