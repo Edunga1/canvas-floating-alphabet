@@ -3,6 +3,11 @@
 - Demo: https://edunga1.github.io/canvas-floating-alphabet/
 - Impact Enabled: https://edunga1.github.io/canvas-floating-alphabet/?w=TOUCH%20ME&i=1
 
+Features:
+
+- Reset the canvas by clicking and holding touch on the canvas.
+- Impact effect by touching the canvas. (Disabled by default)
+
 Query Parameters:
 
 - Word. `w`: The word to display. Default: `ABCDEFGHIJKLMNOPQRSTUVWXYZ`
