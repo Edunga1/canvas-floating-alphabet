@@ -139,6 +139,7 @@ class World {
     impactEnabled = false,
   ) {
     this.ticks = 0
+    this.ticksResetThreshold = undefined
     this.delay = delay
     this.paused = delay > 0
     this.velocityRange = velocityRange
@@ -187,8 +188,31 @@ class World {
     this.paused = false
   }
 
+  startResetThreshold() {
+    this.ticksResetThreshold = this.ticks + 60
+  }
+
+  releaseResetThreshold() {
+    this.ticksResetThreshold = undefined
+  }
+
+  #resetIfOverThreshold() {
+    if (this.ticksResetThreshold === undefined) return
+    if (this.ticks > this.ticksResetThreshold) {
+      this.#reset()
+    }
+  }
+
+  #reset() {
+    this.ticks = 0
+    this.ticksResetThreshold = undefined
+    this.paused = this.delay > 0
+    this.#initWord(this.word)
+  }
+
   #update() {
     this.ticks++
+    this.#resetIfOverThreshold()
 
     if (this.#checkPaused()) return
 
@@ -297,9 +321,17 @@ async function main() {
 
   window.addEventListener("touchstart", e => {
     world.impact(e.touches[0].clientX, e.touches[0].clientY)
+    world.startResetThreshold()
   })
   window.addEventListener("click", e => {
     world.impact(e.clientX, e.clientY)
+    world.startResetThreshold()
+  })
+  window.addEventListener("touchend", () => {
+    world.releaseResetThreshold()
+  })
+  window.addEventListener("mouseup", () => {
+    world.releaseResetThreshold()
   })
 }
 
