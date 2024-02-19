@@ -323,7 +323,7 @@ async function main() {
     world.impact(e.touches[0].clientX, e.touches[0].clientY)
     world.startResetThreshold()
   })
-  window.addEventListener("click", e => {
+  window.addEventListener("mousedown", e => {
     world.impact(e.clientX, e.clientY)
     world.startResetThreshold()
   })
