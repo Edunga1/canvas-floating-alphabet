@@ -293,7 +293,7 @@ async function main() {
   const isTransparent = params.get("t") === "1"
   const delay = params.get("d") ?? 120
   const velocity = params.get("v") ?? 0.03
-  const impactEnabled = params.get("i") === "1"
+  const impactEnabled = (params.get("i") ?? "1") === "1"
   const matrix = await getCharacterMatrix()
   const canvas = new Canvas(document, document.body)
 
