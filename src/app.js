@@ -30,7 +30,11 @@ class Canvas {
     this.canvas.height = height
   }
 
-  addParticle(x, y, size = 20) {
+  addParticle({
+    x,
+    y,
+    size = 20,
+  }) {
     const color = this.isTransparent ? "black" : "white"
     this.context.fillStyle = color
     this.context.fillRect(x, y, size, size)
@@ -149,7 +153,7 @@ class Particle {
 }
 
 class World {
-  constructor(
+  constructor({
     canvas,
     characterMatrix,
     wordSize = 20,
@@ -157,7 +161,7 @@ class World {
     velocityRange = .03,
     impactEnabled = false,
     cursorEnabled = true,
-  ) {
+  }) {
     this.ticks = 0
     this.ticksResetThreshold = undefined
     this.delay = delay
@@ -351,15 +355,15 @@ async function main() {
   }
 
   // run app
-  const world = new World(
+  const world = new World({
     canvas,
-    matrix,
-    size,
+    characterMatrix: matrix,
+    wordSize: size,
     delay,
     velocity,
     impactEnabled,
     cursorEnabled,
-  )
+  })
 
   // on resize
   world.resize(window.innerWidth, window.innerHeight)
