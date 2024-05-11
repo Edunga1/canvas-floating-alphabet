@@ -36,6 +36,25 @@ class Canvas {
     this.context.fillRect(x, y, size, size)
   }
 
+  addLine({
+    x1,
+    y1,
+    x2,
+    y2,
+    color = this.isTransparent ? "black" : "white",
+    opacity = 1,
+  }) {
+    this.context.save()
+    this.context.strokeStyle = color
+    this.context.globalAlpha = opacity
+    this.context.beginPath()
+    this.context.moveTo(x1, y1)
+    this.context.lineTo(x2, y2)
+    this.context.stroke()
+    this.context.closePath()
+    this.context.restore()
+  }
+
   draw(func) {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
     if (!this.isTransparent) {
@@ -137,6 +156,7 @@ class World {
     delay = 120,
     velocityRange = .03,
     impactEnabled = false,
+    cursorEnabled = true,
   ) {
     this.ticks = 0
     this.ticksResetThreshold = undefined
@@ -146,6 +166,8 @@ class World {
     this.canvas = canvas
     this.impactEnabled = impactEnabled
     this.impactedDistance = wordSize * 4
+    this.cursor = undefined
+    this.cursorEnabled = cursorEnabled
 
     /** @type {Object<string, number[][]>} */
     this.characterMatrix = characterMatrix
@@ -180,8 +202,7 @@ class World {
   impact(x, y) {
     if (!this.impactEnabled) return
     const impacted = new Vector(x, y)
-    this.fragments
-      .filter(i => i.pos.subtr(impacted).mag() < this.impactedDistance)
+    this.#getFragmentsInImpactDistance()
       .forEach(i => {
         i.velocity = i.pos.subtr(impacted).multiply(0.1)
       })
@@ -194,6 +215,10 @@ class World {
 
   releaseResetThreshold() {
     this.ticksResetThreshold = undefined
+  }
+
+  moveCursor(x, y) {
+    this.cursor = new Vector(x, y)
   }
 
   #resetIfOverThreshold() {
@@ -234,10 +259,33 @@ class World {
 
   #render() {
     this.canvas.draw((canvas) => {
+      // cursor
+      this.#renderCursor(canvas)
+      // particles
       this.fragments.forEach(i => {
-        canvas.addParticle(i.pos.x, i.pos.y, i.radius*2)
+        canvas.addParticle(i.pos.x, i.pos.y, i.radius * 2)
       })
     })
+  }
+
+  #renderCursor(canvas) {
+    if (this.cursor === undefined) return
+    if (!this.cursorEnabled) return
+    const fragments = this.#getFragmentsInImpactDistance()
+    fragments.forEach(i => {
+      canvas.addLine({
+        x1: i.pos.x,
+        y1: i.pos.y,
+        x2: this.cursor.x,
+        y2: this.cursor.y,
+        color: "#00ff00",
+        opacity: 0.7,
+      })
+    })
+  }
+
+  #getFragmentsInImpactDistance() {
+    return this.fragments.filter(i => i.pos.subtr(this.cursor).mag() < this.impactedDistance)
   }
 
   #initWord(word) {
@@ -294,6 +342,7 @@ async function main() {
   const delay = params.get("d") ?? 120
   const velocity = params.get("v") ?? 0.03
   const impactEnabled = (params.get("i") ?? "1") === "1"
+  const cursorEnabled = (params.get("c") ?? "1") === "1"
   const matrix = await getCharacterMatrix()
   const canvas = new Canvas(document, document.body)
 
@@ -309,6 +358,7 @@ async function main() {
     delay,
     velocity,
     impactEnabled,
+    cursorEnabled,
   )
 
   // on resize
@@ -332,6 +382,9 @@ async function main() {
   })
   window.addEventListener("mouseup", () => {
     world.releaseResetThreshold()
+  })
+  window.addEventListener("mousemove", e => {
+    world.moveCursor(e.clientX, e.clientY)
   })
 }
 
