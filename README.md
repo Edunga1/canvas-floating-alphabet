@@ -17,3 +17,6 @@ Query Parameters:
 - Impact Effect. `i`:  `1` to enable, otherwise to disable. Default is enabled.
     - Touch the canvas to cause the impact effect.
     - Impact effect skips the tick delay.
+- Cursor Effect. `c`: `1` to enable, `0` to disable. Default is disabled.
+    - Cursor effect follows the cursor.
+    - This reperesents the impact radius.
