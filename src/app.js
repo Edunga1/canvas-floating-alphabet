@@ -267,7 +267,11 @@ class World {
       this.#renderCursor(canvas)
       // particles
       this.fragments.forEach(i => {
-        canvas.addParticle(i.pos.x, i.pos.y, i.radius * 2)
+        canvas.addParticle({
+          x: i.pos.x,
+          y: i.pos.y,
+          size: i.radius * 2,
+        })
       })
     })
   }
