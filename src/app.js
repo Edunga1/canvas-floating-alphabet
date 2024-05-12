@@ -34,10 +34,15 @@ class Canvas {
     x,
     y,
     size = 20,
+    border = undefined,
   }) {
     const color = this.isTransparent ? "black" : "white"
     this.context.fillStyle = color
     this.context.fillRect(x, y, size, size)
+    if (border) {
+      this.context.strokeStyle = border
+      this.context.strokeRect(x, y, size, size)
+    }
   }
 
   addLine({
@@ -172,6 +177,7 @@ class World {
     this.impactedDistance = wordSize * 4
     this.cursor = undefined
     this.cursorEnabled = cursorEnabled
+    this.cursorColor = "#00ff00"
 
     /** @type {Object<string, number[][]>} */
     this.characterMatrix = characterMatrix
@@ -263,16 +269,8 @@ class World {
 
   #render() {
     this.canvas.draw((canvas) => {
-      // cursor
       this.#renderCursor(canvas)
-      // particles
-      this.fragments.forEach(i => {
-        canvas.addParticle({
-          x: i.pos.x,
-          y: i.pos.y,
-          size: i.radius * 2,
-        })
-      })
+      this.#renderFragments(canvas)
     })
   }
 
@@ -286,13 +284,27 @@ class World {
         y1: i.pos.y,
         x2: this.cursor.x,
         y2: this.cursor.y,
-        color: "#00ff00",
+        color: this.cursorColor,
         opacity: 0.7,
       })
     })
   }
 
+  #renderFragments(canvas) {
+    const fragementsInImpactDistance = new Set(this.#getFragmentsInImpactDistance())
+    this.fragments.forEach(i => {
+      const border = this.cursorEnabled && fragementsInImpactDistance.has(i) ? this.cursorColor : undefined
+      canvas.addParticle({
+        x: i.pos.x,
+        y: i.pos.y,
+        size: i.radius * 2,
+        border,
+      })
+    })
+  }
+
   #getFragmentsInImpactDistance() {
+    if (this.cursor === undefined) return []
     return this.fragments.filter(i => i.pos.subtr(this.cursor).mag() < this.impactedDistance)
   }
 
