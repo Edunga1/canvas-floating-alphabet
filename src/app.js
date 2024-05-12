@@ -212,7 +212,7 @@ class World {
   impact(x, y) {
     if (!this.impactEnabled) return
     const impacted = new Vector(x, y)
-    this.#getFragmentsInImpactDistance()
+    this.#getFragmentsInRange(impacted)
       .forEach(i => {
         i.velocity = i.pos.subtr(impacted).multiply(0.1)
       })
@@ -305,7 +305,11 @@ class World {
 
   #getFragmentsInImpactDistance() {
     if (this.cursor === undefined) return []
-    return this.fragments.filter(i => i.pos.subtr(this.cursor).mag() < this.impactedDistance)
+    return this.#getFragmentsInRange(this.cursor)
+  }
+
+  #getFragmentsInRange(pos) {
+    return this.fragments.filter(i => i.pos.subtr(pos).mag() < this.impactedDistance)
   }
 
   #initWord(word) {
@@ -397,7 +401,8 @@ async function main() {
     world.impact(e.clientX, e.clientY)
     world.startResetThreshold()
   })
-  window.addEventListener("touchend", () => {
+  window.addEventListener("touchend", e => {
+    e.preventDefault()
     world.releaseResetThreshold()
   })
   window.addEventListener("mouseup", () => {
