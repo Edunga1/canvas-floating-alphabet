@@ -125,7 +125,6 @@ class Particle {
     this.info = info
     this.pos = pos
     this.radius = radius
-    this.radius = radius
     this.velocity = velocity
   }
   collide(particle) {
