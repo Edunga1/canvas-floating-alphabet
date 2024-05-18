@@ -296,13 +296,13 @@ class World {
         if (collided && (this.gameMode.isScoreParticle(i) || this.gameMode.isScoreParticle(j))) {
           this.gameMode.increaseScore()
         }
-        // bounce off the wall
-        if (a.pos.x - a.radius < 0 || a.pos.x + a.radius > this.canvas.width) {
-          a.velocity.x *= -1
-        }
-        if (a.pos.y - a.radius < 0 || a.pos.y + a.radius > this.canvas.height) {
-          a.velocity.y *= -1
-        }
+      }
+      // bounce off the wall
+      if (a.pos.x - a.radius < 0 || a.pos.x + a.radius > this.canvas.width) {
+        a.velocity.x *= -1
+      }
+      if (a.pos.y - a.radius < 0 || a.pos.y + a.radius > this.canvas.height) {
+        a.velocity.y *= -1
       }
       a.forward()
     }
