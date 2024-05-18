@@ -288,23 +288,24 @@ class World {
 
     if (this.#checkPaused()) return
 
-    this.fragments.forEach((i, idx) => {
-      this.fragments.forEach(j => {
-        if (i === j) return
-        const collided = i.collide(j)
-        if (collided && this.gameMode.isScoreParticle(idx)) {
+    for (let i = 0; i < this.fragments.length; i++) {
+      const a = this.fragments[i]
+      for (let j = i + 1; j < this.fragments.length; j++) {
+        const b = this.fragments[j]
+        const collided = a.collide(b)
+        if (collided && (this.gameMode.isScoreParticle(i) || this.gameMode.isScoreParticle(j))) {
           this.gameMode.increaseScore()
         }
-      })
-      // bounce off the wall
-      if (i.pos.x - i.radius < 0 || i.pos.x + i.radius > this.canvas.width) {
-        i.velocity.x *= -1
+        // bounce off the wall
+        if (a.pos.x - a.radius < 0 || a.pos.x + a.radius > this.canvas.width) {
+          a.velocity.x *= -1
+        }
+        if (a.pos.y - a.radius < 0 || a.pos.y + a.radius > this.canvas.height) {
+          a.velocity.y *= -1
+        }
       }
-      if (i.pos.y - i.radius < 0 || i.pos.y + i.radius > this.canvas.height) {
-        i.velocity.y *= -1
-      }
-      i.forward()
-    })
+      a.forward()
+    }
   }
 
   #render() {
