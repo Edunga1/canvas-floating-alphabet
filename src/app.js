@@ -122,13 +122,11 @@ class Particle {
     pos = new Vector(),
     radius = 20,
     velocity = new Vector(),
-    isScoreParticle = false,
   }) {
     this.info = info
     this.pos = pos
     this.radius = radius
     this.velocity = velocity
-    this.isScoreParticle = isScoreParticle
   }
   collide(particle) {
     if (!this.#intersects(particle)) return
@@ -159,6 +157,22 @@ class Particle {
   }
 }
 
+class GameMode {
+  constructor(enabled) {
+    this.enabled = enabled
+    this.ids = new Set()
+  }
+
+  addScoreParticle(id) {
+    this.ids.add(id)
+  }
+
+  isScoreParticle(idx) {
+    if (!this.enabled) return false
+    return this.ids.has(idx)
+  }
+}
+
 class World {
   constructor({
     canvas,
@@ -181,7 +195,7 @@ class World {
     this.cursor = undefined
     this.cursorEnabled = cursorEnabled
     this.cursorColor = "#00ff00"
-    this.gameModeEnabled = gameModeEnabled
+    this.gameMode = new GameMode(gameModeEnabled)
 
     /** @type {Object<string, number[][]>} */
     this.characterMatrix = characterMatrix
@@ -296,9 +310,10 @@ class World {
 
   #renderFragments(canvas) {
     const fragementsInImpactDistance = new Set(this.#getFragmentsInImpactDistance())
-    this.fragments.forEach(i => {
+    this.fragments.forEach((i, idx) => {
       const border = this.cursorEnabled && fragementsInImpactDistance.has(i) ? this.cursorColor : undefined
-      const foreground = this.gameModeEnabled && i.isScoreParticle ? "red" : undefined
+      const isScoreParticle = this.gameMode.isScoreParticle(idx)
+      const foreground = this.gameMode.enabled && isScoreParticle ? "red" : undefined
       canvas.addParticle({
         x: i.pos.x,
         y: i.pos.y,
@@ -353,7 +368,8 @@ class World {
       .flat()
 
     // Choose one fragment as a score particle for game mode
-    this.fragments[Math.random() * this.fragments.length | 0].isScoreParticle = true
+    const scoreParticleIdx = Math.floor(Math.random() * this.fragments.length)
+    this.gameMode.addScoreParticle(scoreParticleIdx)
   }
 
   #checkPaused() {
