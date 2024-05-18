@@ -35,8 +35,9 @@ class Canvas {
     y,
     size = 20,
     border = undefined,
+    foreground = undefined,
   }) {
-    const color = this.isTransparent ? "black" : "white"
+    const color = foreground ?? (this.isTransparent ? "black" : "white")
     this.context.fillStyle = color
     this.context.fillRect(x, y, size, size)
     if (border) {
@@ -121,11 +122,13 @@ class Particle {
     pos = new Vector(),
     radius = 20,
     velocity = new Vector(),
+    isScoreParticle = false,
   }) {
     this.info = info
     this.pos = pos
     this.radius = radius
     this.velocity = velocity
+    this.isScoreParticle = isScoreParticle
   }
   collide(particle) {
     if (!this.#intersects(particle)) return
@@ -165,6 +168,7 @@ class World {
     velocityRange = .03,
     impactEnabled = false,
     cursorEnabled = true,
+    gameModeEnabled = false,
   }) {
     this.ticks = 0
     this.ticksResetThreshold = undefined
@@ -177,6 +181,7 @@ class World {
     this.cursor = undefined
     this.cursorEnabled = cursorEnabled
     this.cursorColor = "#00ff00"
+    this.gameModeEnabled = gameModeEnabled
 
     /** @type {Object<string, number[][]>} */
     this.characterMatrix = characterMatrix
@@ -293,11 +298,13 @@ class World {
     const fragementsInImpactDistance = new Set(this.#getFragmentsInImpactDistance())
     this.fragments.forEach(i => {
       const border = this.cursorEnabled && fragementsInImpactDistance.has(i) ? this.cursorColor : undefined
+      const foreground = this.gameModeEnabled && i.isScoreParticle ? "red" : undefined
       canvas.addParticle({
         x: i.pos.x,
         y: i.pos.y,
         size: i.radius * 2,
         border,
+        foreground,
       })
     })
   }
@@ -344,6 +351,9 @@ class World {
           .flat()
       })
       .flat()
+
+    // Choose one fragment as a score particle for game mode
+    this.fragments[Math.random() * this.fragments.length | 0].isScoreParticle = true
   }
 
   #checkPaused() {
@@ -366,6 +376,7 @@ async function main() {
   const velocity = params.get("v") ?? 0.03
   const impactEnabled = (params.get("i") ?? "1") === "1"
   const cursorEnabled = (params.get("c") ?? "1") === "1"
+  const gameModeEnabled = (params.get("g") ?? "0") === "1"
   const matrix = await getCharacterMatrix()
   const canvas = new Canvas(document, document.body)
 
@@ -382,6 +393,7 @@ async function main() {
     velocity,
     impactEnabled,
     cursorEnabled,
+    gameModeEnabled,
   })
 
   // on resize
