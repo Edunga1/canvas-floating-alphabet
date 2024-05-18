@@ -65,6 +65,19 @@ class Canvas {
     this.context.restore()
   }
 
+  addBackgroundText(text) {
+    const size = Math.min(this.canvas.width, this.canvas.height) / 2
+    const x = this.canvas.width / 2
+    const y = this.canvas.height / 2 + size / 4
+    this.context.save()
+    this.context.globalAlpha = 0.2
+    this.context.font = `${size}px Arial`
+    this.context.textAlign = "center"
+    this.context.fillStyle = this.isTransparent ? "black" : "white"
+    this.context.fillText(text, x, y)
+    this.context.restore()
+  }
+
   draw(func) {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
     if (!this.isTransparent) {
@@ -129,11 +142,12 @@ class Particle {
     this.velocity = velocity
   }
   collide(particle) {
-    if (!this.#intersects(particle)) return
+    if (!this.#intersects(particle)) return false
     const newVelocity = this.#calcVelocity(particle)
     const newParticleVelocity = particle.#calcVelocity(this)
     this.velocity = newVelocity
     particle.velocity = newParticleVelocity
+    return true
   }
   forward() {
     this.pos = this.#nextPos()
@@ -161,10 +175,15 @@ class GameMode {
   constructor(enabled) {
     this.enabled = enabled
     this.ids = new Set()
+    this.score = 0
   }
 
   addScoreParticle(id) {
     this.ids.add(id)
+  }
+
+  increaseScore() {
+    this.score++
   }
 
   isScoreParticle(idx) {
@@ -269,10 +288,13 @@ class World {
 
     if (this.#checkPaused()) return
 
-    this.fragments.forEach(i => {
+    this.fragments.forEach((i, idx) => {
       this.fragments.forEach(j => {
         if (i === j) return
-        i.collide(j)
+        const collided = i.collide(j)
+        if (collided && this.gameMode.isScoreParticle(idx)) {
+          this.gameMode.increaseScore()
+        }
       })
       // bounce off the wall
       if (i.pos.x - i.radius < 0 || i.pos.x + i.radius > this.canvas.width) {
@@ -289,6 +311,7 @@ class World {
     this.canvas.draw((canvas) => {
       this.#renderCursor(canvas)
       this.#renderFragments(canvas)
+      this.#renderScore(canvas)
     })
   }
 
@@ -322,6 +345,11 @@ class World {
         foreground,
       })
     })
+  }
+
+  #renderScore(canvas) {
+    if (!this.gameMode.enabled || this.gameMode.score === 0) return
+    canvas.addBackgroundText(this.gameMode.score)
   }
 
   #getFragmentsInImpactDistance() {
