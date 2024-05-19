@@ -192,6 +192,23 @@ class GameMode {
   }
 }
 
+class Cursor {
+  constructor(enabled, color) {
+    this.enabled = enabled
+    this.color = color
+    this.pos = undefined
+  }
+
+  setPos(x, y) {
+    this.pos = new Vector(x, y)
+  }
+
+  getPos() {
+    if (!this.enabled) return undefined
+    return this.pos
+  }
+}
+
 class World {
   constructor({
     canvas,
@@ -211,9 +228,7 @@ class World {
     this.canvas = canvas
     this.impactEnabled = impactEnabled
     this.impactedDistance = wordSize * 4
-    this.cursor = undefined
-    this.cursorEnabled = cursorEnabled
-    this.cursorColor = "#00ff00"
+    this.cursor = new Cursor(cursorEnabled, "#00ff00")
     this.gameMode = new GameMode(gameModeEnabled)
 
     /** @type {Object<string, number[][]>} */
@@ -265,7 +280,7 @@ class World {
   }
 
   moveCursor(x, y) {
-    this.cursor = new Vector(x, y)
+    this.cursor.setPos(x, y)
   }
 
   #resetIfOverThreshold() {
@@ -317,16 +332,16 @@ class World {
   }
 
   #renderCursor(canvas) {
-    if (this.cursor === undefined) return
-    if (!this.cursorEnabled) return
+    const pos = this.cursor.getPos()
+    if (pos === undefined) return
     const fragments = this.#getFragmentsInImpactDistance()
     fragments.forEach(i => {
       canvas.addLine({
         x1: i.pos.x,
         y1: i.pos.y,
-        x2: this.cursor.x,
-        y2: this.cursor.y,
-        color: this.cursorColor,
+        x2: pos.x,
+        y2: pos.y,
+        color: this.cursor.color,
         opacity: 0.7,
       })
     })
@@ -335,7 +350,7 @@ class World {
   #renderFragments(canvas) {
     const fragementsInImpactDistance = new Set(this.#getFragmentsInImpactDistance())
     this.fragments.forEach((i, idx) => {
-      const border = this.cursorEnabled && fragementsInImpactDistance.has(i) ? this.cursorColor : undefined
+      const border = this.cursor.enabled && fragementsInImpactDistance.has(i) ? this.cursor.color : undefined
       const isScoreParticle = this.gameMode.isScoreParticle(idx)
       const foreground = this.gameMode.enabled && isScoreParticle ? "red" : undefined
       canvas.addParticle({
@@ -354,8 +369,9 @@ class World {
   }
 
   #getFragmentsInImpactDistance() {
-    if (this.cursor === undefined) return []
-    return this.#getFragmentsInRange(this.cursor)
+    const pos = this.cursor.getPos()
+    if (pos === undefined) return []
+    return this.#getFragmentsInRange(pos)
   }
 
   #getFragmentsInRange(pos) {
