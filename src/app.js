@@ -207,6 +207,10 @@ class Cursor {
     if (!this.enabled) return undefined
     return this.pos
   }
+
+  clear() {
+    this.pos = undefined
+  }
 }
 
 class World {
@@ -281,6 +285,10 @@ class World {
 
   moveCursor(x, y) {
     this.cursor.setPos(x, y)
+  }
+
+  clearCursor() {
+    this.cursor.clear()
   }
 
   #resetIfOverThreshold() {
@@ -482,6 +490,9 @@ async function main() {
   })
   window.addEventListener("mousemove", e => {
     world.moveCursor(e.clientX, e.clientY)
+  })
+  canvas.canvas.addEventListener("mouseleave", () => {
+    world.clearCursor()
   })
 }
 
