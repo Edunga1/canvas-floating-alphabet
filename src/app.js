@@ -2,6 +2,7 @@ class Canvas {
   constructor(
     document,
     container,
+    backgroundColor,
   ) {
     this.document = document
     this.container = container
@@ -9,7 +10,7 @@ class Canvas {
     this.container.appendChild(this.canvas)
     /** @type {CanvasRenderingContext2D} */
     this.context = this.canvas.getContext("2d")
-    this.isTransparent = false
+    this.backgroundColor = this.#parseColor(backgroundColor)
   }
 
   get width() {
@@ -18,6 +19,11 @@ class Canvas {
 
   get height() {
     return this.canvas.height
+  }
+
+  #parseColor(color) {
+    if (color === undefined) return undefined
+    return `#${color}`
   }
 
   #createCanvas() {
@@ -37,7 +43,7 @@ class Canvas {
     border = undefined,
     foreground = undefined,
   }) {
-    const color = foreground ?? (this.isTransparent ? "black" : "white")
+    const color = foreground ?? (this.backgroundColor ? "white" : "black")
     this.context.fillStyle = color
     this.context.fillRect(x, y, size, size)
     if (border) {
@@ -51,7 +57,7 @@ class Canvas {
     y1,
     x2,
     y2,
-    color = this.isTransparent ? "black" : "white",
+    color = this.backgroundColor ? "white" : "black",
     opacity = 1,
   }) {
     this.context.save()
@@ -73,24 +79,20 @@ class Canvas {
     this.context.globalAlpha = 0.2
     this.context.font = `${size}px Arial`
     this.context.textAlign = "center"
-    this.context.fillStyle = this.isTransparent ? "black" : "white"
+    this.context.fillStyle = this.backgroundColor ? "white" : "black"
     this.context.fillText(text, x, y)
     this.context.restore()
   }
 
   draw(func) {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    if (!this.isTransparent) {
-      this.context.fillStyle = "black"
+    if (this.backgroundColor !== undefined) {
+      this.context.fillStyle = this.backgroundColor
       this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
     }
     this.context.save()
     func(this)
     this.context.restore()
-  }
-
-  setTransparentBackground() {
-    this.isTransparent = true
   }
 }
 
@@ -440,18 +442,14 @@ async function main() {
   const params = new URLSearchParams(window.location.search)
   const word = (params.get("w") ?? "ABCDEFGHIJKLMNOPQRSTUVWXYZ").toUpperCase()
   const size = params.get("s") ?? 5
-  const isTransparent = params.get("t") === "1"
+  const backgroundColor = params.get("b") ?? undefined
   const delay = params.get("d") ?? 120
   const velocity = params.get("v") ?? 0.03
   const impactEnabled = (params.get("i") ?? "1") === "1"
   const cursorEnabled = (params.get("c") ?? "1") === "1"
   const gameModeEnabled = (params.get("g") ?? "0") === "1"
   const matrix = await getCharacterMatrix()
-  const canvas = new Canvas(document, document.body)
-
-  if (isTransparent) {
-    canvas.setTransparentBackground()
-  }
+  const canvas = new Canvas(document, document.body, backgroundColor)
 
   // run app
   const world = new World({
