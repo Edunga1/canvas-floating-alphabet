@@ -13,7 +13,10 @@ Query Parameters:
 - Word Size. `s`: The font size of the word. Default: `5`
 - Word Velocity. `v`: The speed of the word. Default: `0.03`
 - Delay(tick). `d`: Waits for the tick to start the animation. Default: `120`
-- Transparency Background. `t`: `1` to enable, `0` to disable. Default is disabled.
+- Background Color. `b`: The background color of the canvas. Default is transparent.
+    - The color only can be in hex code.
+    - Example: `b=FF0000` for red.
+    - Demo: https://edunga1.github.io/canvas-floating-alphabet/?b=FF69B4
 - Impact Effect. `i`:  `1` to enable, otherwise to disable. Default is enabled.
     - Touch the canvas to cause the impact effect.
     - Impact effect skips the tick delay.
