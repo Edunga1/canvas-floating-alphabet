@@ -42,14 +42,18 @@ class Canvas {
     size = 20,
     border = undefined,
     foreground = undefined,
+    opacity = 1,
   }) {
     const color = foreground ?? (this.backgroundColor ? "white" : "black")
+    this.context.save()
     this.context.fillStyle = color
+    this.context.globalAlpha = opacity
     this.context.fillRect(x, y, size, size)
     if (border) {
       this.context.strokeStyle = border
       this.context.strokeRect(x, y, size, size)
     }
+    this.context.restore()
   }
 
   addLine({
@@ -137,11 +141,17 @@ class Particle {
     pos = new Vector(),
     radius = 20,
     velocity = new Vector(),
+    tailLength = 3,
+    tailThreshold = 1,  // adds tail every N steps
   }) {
     this.info = info
     this.pos = pos
+    this.prevPos = []
     this.radius = radius
     this.velocity = velocity
+    this.tailLength = tailLength
+    this.tailThreshold = tailThreshold
+    this.tailThresholdCounter = 0
   }
   collide(particle) {
     if (!this.#intersects(particle)) return false
@@ -153,6 +163,10 @@ class Particle {
   }
   forward() {
     this.pos = this.#nextPos()
+    if (this.tailThresholdCounter++ % this.tailThreshold === 0) {
+      this.prevPos.unshift(this.pos)
+      this.prevPos = this.prevPos.slice(0, this.tailLength)
+    }
   }
   #nextPos() {
     return this.pos.add(this.velocity)
@@ -363,12 +377,25 @@ class World {
       const border = this.cursor.enabled && fragementsInImpactDistance.has(i) ? this.cursor.color : undefined
       const isScoreParticle = this.gameMode.isScoreParticle(idx)
       const foreground = this.gameMode.enabled && isScoreParticle ? "red" : undefined
+      const size = i.radius * 2
       canvas.addParticle({
-        x: i.pos.x,
-        y: i.pos.y,
-        size: i.radius * 2,
+        x: i.pos.x - size * 0.5,
+        y: i.pos.y - size * 0.5,
+        size,
         border,
         foreground,
+      })
+      i.prevPos.forEach((pos, idx) => {
+        if (idx === 0) return
+        const multiplier = 0.9 ** (idx + 1)
+        const psize = size * 0.9 ** multiplier
+        canvas.addParticle({
+          x: pos.x - psize * 0.5,
+          y: pos.y - psize * 0.5,
+          size: psize,
+          foreground,
+          opacity: 0.1,
+        })
       })
     })
   }
