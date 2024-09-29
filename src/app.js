@@ -484,7 +484,7 @@ async function main() {
     characterMatrix: matrix,
     wordSize: size,
     delay,
-    velocity,
+    velocityRange: Number(velocity),
     impactEnabled,
     cursorEnabled,
     gameModeEnabled,
