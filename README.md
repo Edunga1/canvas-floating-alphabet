@@ -9,9 +9,10 @@ Features:
 
 Query Parameters:
 
-- Word. `w`: The word to display. Default: `ABCDEFGHIJKLMNOPQRSTUVWXYZ`
-- Word Size. `s`: The font size of the word. Default: `5`
-- Word Velocity. `v`: The speed of the word. Default: `0.03`
+- Word. `w`: The word to display. Default: `ABCDEFGHIJKLMNOPQRSTUVWXYZ`. examples: [hello world](https://edunga1.github.io/canvas-floating-alphabet?w=hello%20world), [bye 2023 hello 2024](https://edunga1.github.io/canvas-floating-alphabet?w=bye%202023%20hello%202024)
+    - Only alphabets are allowed.
+- Word Size. `s`: The font size of the word. Default: `5`. examples: [10](https://edunga1.github.io/canvas-floating-alphabet?s=10), [20](https://edunga1.github.io/canvas-floating-alphabet?s=20)
+- Word Velocity. `v`: The speed of the word. Default: `0.03`. examples: [0.01](https://edunga1.github.io/canvas-floating-alphabet?v=0.01), [1](https://edunga1.github.io/canvas-floating-alphabet?v=1)
 - Delay(tick). `d`: Waits for the tick to start the animation. Default: `120`
 - Background Color. `b`: The background color of the canvas. Default is transparent.
     - The color only can be in hex code.
