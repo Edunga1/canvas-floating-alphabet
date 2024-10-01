@@ -500,7 +500,6 @@ async function main() {
     world.resize(window.innerWidth, window.innerHeight)
   })
 
-  
   window.addEventListener("touchstart", (e) => {
     const touch = e.touches[0]
     world.impact(touch.clientX, touch.clientY)
@@ -515,6 +514,7 @@ async function main() {
   window.addEventListener("touchend", (e) => {
     e.preventDefault()
     world.releaseResetThreshold()
+    world.clearCursor()
     mouseStartPos = null
   })
   window.addEventListener("mouseup", () => {
