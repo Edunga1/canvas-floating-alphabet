@@ -465,6 +465,59 @@ async function getCharacterMatrix() {
   return (await fetch("./src/mappings.json")).json()
 }
 
+function registerEventListeners(world, canvas) {
+  const dragThreshold = 5;
+  let mouseStartPos = null;
+
+  function onClickStart(x, y) {
+    world.impact(x, y)
+    world.startResetThreshold()
+    mouseStartPos = { x, y }
+  }
+
+  function onClickEnd() {
+    world.releaseResetThreshold()
+    mouseStartPos = null
+  }
+
+  function onCurosrMove(x, y) {
+    world.moveCursor(x, y)
+    if (mouseStartPos != null) {
+      const dx = Math.abs(x - mouseStartPos.x)
+      const dy = Math.abs(y - mouseStartPos.y)
+
+      if (dx > dragThreshold || dy > dragThreshold) {
+        world.impact(x, y)
+        world.releaseResetThreshold()
+      }
+    }
+  }
+
+  window.addEventListener("touchstart", (e) => {
+    onClickStart(e.touches[0].clientX, e.touches[0].clientY)
+  })
+  window.addEventListener("mousedown", (e) => {
+    onClickStart(e.clientX, e.clientY)
+  })
+  window.addEventListener("touchend", (e) => {
+    e.preventDefault()
+    world.clearCursor()
+    onClickEnd()
+  })
+  window.addEventListener("mouseup", () => {
+    onClickEnd()
+  })
+  window.addEventListener("mousemove", (e) => {
+    onCurosrMove(e.clientX, e.clientY)
+  })
+  window.addEventListener("touchmove", (e) => {
+    onCurosrMove(e.touches[0].clientX, e.touches[0].clientY)
+  })
+  canvas.addEventListener("mouseleave", () => {
+    world.clearCursor()
+  })
+}
+
 async function main() {
   const params = new URLSearchParams(window.location.search)
   const word = (params.get("w") ?? "ABCDEFGHIJKLMNOPQRSTUVWXYZ").toUpperCase()
@@ -477,8 +530,6 @@ async function main() {
   const gameModeEnabled = (params.get("g") ?? "0") === "1"
   const matrix = await getCharacterMatrix()
   const canvas = new Canvas(document, document.body, backgroundColor)
-  let mouseStartPos = null;
-  const dragThreshold = 5;
 
   // run app
   const world = new World({
@@ -495,59 +546,10 @@ async function main() {
   // on resize
   world.resize(window.innerWidth, window.innerHeight)
   world.run(word)
+  registerEventListeners(world, canvas.canvas)
 
   window.addEventListener("resize", () => {
     world.resize(window.innerWidth, window.innerHeight)
-  })
-
-  window.addEventListener("touchstart", (e) => {
-    const touch = e.touches[0]
-    world.impact(touch.clientX, touch.clientY)
-    world.startResetThreshold()
-    mouseStartPos = { x: touch.clientX, y: touch.clientY }
-  })
-  window.addEventListener("mousedown", (e) => {
-    world.impact(e.clientX, e.clientY)
-    world.startResetThreshold()
-    mouseStartPos = { x: e.clientX, y: e.clientY }
-  })
-  window.addEventListener("touchend", (e) => {
-    e.preventDefault()
-    world.releaseResetThreshold()
-    world.clearCursor()
-    mouseStartPos = null
-  })
-  window.addEventListener("mouseup", () => {
-    world.releaseResetThreshold()
-    mouseStartPos = null
-  })
-  window.addEventListener("mousemove", (e) => {
-    world.moveCursor(e.clientX, e.clientY)
-    if (mouseStartPos != null) {
-      const dx = Math.abs(e.clientX - mouseStartPos.x)
-      const dy = Math.abs(e.clientY - mouseStartPos.y)
-
-      if (dx > dragThreshold || dy > dragThreshold) {
-        world.impact(e.clientX, e.clientY)
-        world.releaseResetThreshold()
-      }
-    }
-  })
-  window.addEventListener("touchmove", (e) => {
-    const touch = e.touches[0]
-    world.moveCursor(touch.clientX, touch.clientY)
-    if (mouseStartPos != null) {
-      const dx = Math.abs(touch.clientX - mouseStartPos.x)
-      const dy = Math.abs(touch.clientY - mouseStartPos.y)
-
-      if (dx > dragThreshold || dy > dragThreshold) {
-        world.impact(touch.clientX, touch.clientY)
-        world.releaseResetThreshold()
-      }
-    }
-  })
-  canvas.canvas.addEventListener("mouseleave", () => {
-    world.clearCursor()
   })
 }
 
