@@ -417,13 +417,27 @@ class World {
 
   #initWord(word) {
     this.word = word
+
+    this.fragments = this.#wordToFragments(this.word)
+
+    // Choose one fragment as a score particle for game mode
+    const scoreParticleIdx = Math.floor(Math.random() * this.fragments.length)
+    this.gameMode.addScoreParticle(scoreParticleIdx)
+  }
+
+  #checkPaused() {
+    if (!this.paused) return false
+    this.paused = this.ticks < this.delay
+    return this.paused
+  }
+
+  #wordToFragments(word) {
     const maxCanvasWidth = this.canvas.width * 0.8
     const wordWidth = this.word.length * this.wordSize
     const maxWidth = Math.min(maxCanvasWidth, wordWidth)
     const padding = this.wordSize
     const leftMargin = (this.canvas.width - maxWidth) / 3
-
-    this.fragments = this.word
+    return word
       .split("")
       .map((letter, seq) => {
         const matrix = this.characterMatrix[letter] ?? []
@@ -448,16 +462,6 @@ class World {
           .flat()
       })
       .flat()
-
-    // Choose one fragment as a score particle for game mode
-    const scoreParticleIdx = Math.floor(Math.random() * this.fragments.length)
-    this.gameMode.addScoreParticle(scoreParticleIdx)
-  }
-
-  #checkPaused() {
-    if (!this.paused) return false
-    this.paused = this.ticks < this.delay
-    return this.paused
   }
 }
 
