@@ -18,9 +18,12 @@ Query Parameters:
     - The color only can be in hex code.
     - Example: `b=FF0000` for red.
     - Demo: https://edunga1.github.io/canvas-floating-alphabet/?b=FF69B4
+    - examples: [FF0000(red)](https://edunga1.github.io/canvas-floating-alphabet?b=FF0000), [00FF00(green)](https://edunga1.github.io/canvas-floating-alphabet?b=00FF00), [0000FF(blue)](https://edunga1.github.io/canvas-floating-alphabet?b=0000FF)
 - Impact Effect. `i`:  `1` to enable, otherwise to disable. Default is enabled.
     - Touch the canvas to cause the impact effect.
     - Impact effect skips the tick delay.
-- Cursor Effect. `c`: `1` to enable, `0` to disable. Default is disabled.
+    - examples: [enable(default)](https://edunga1.github.io/canvas-floating-alphabet), [disable](https://edunga1.github.io/canvas-floating-alphabet?i=0)
+- Cursor Effect. `c`: `1` to enable, `0` to disable. Default is enabled.
     - Cursor effect follows the cursor.
     - This reperesents the impact radius.
+    - examples: [enable(default)](https://edunga1.github.io/canvas-floating-alphabet?c=1), [disable](https://edunga1.github.io/canvas-floating-alphabet?c=0)
