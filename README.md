@@ -27,3 +27,5 @@ Query Parameters:
     - Cursor effect follows the cursor.
     - This reperesents the impact radius.
     - examples: [enable(default)](https://edunga1.github.io/canvas-floating-alphabet?c=1), [disable](https://edunga1.github.io/canvas-floating-alphabet?c=0)
+- Character Glyph. `h`: The character glyph to display. `5x5`(default), `8x8`.
+    - examples: [5x5(default)](https://edunga1.github.io/canvas-floating-alphabet), [8x8](https://edunga1.github.io/canvas-floating-alphabet?h=8x8)
