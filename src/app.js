@@ -437,6 +437,7 @@ class World {
     const maxWidth = Math.min(maxCanvasWidth, wordWidth)
     const padding = this.wordSize
     const leftMargin = (this.canvas.width - maxWidth) / 3
+    const letterWidth = this.characterMatrix["A"][0].length
     return word
       .split("")
       .map((letter, seq) => {
@@ -447,7 +448,7 @@ class World {
             return new Particle({
               info: letter,
               pos: new Vector(
-                leftMargin - maxWidth / 2 + x * padding + seq * this.wordSize * 5,
+                leftMargin - maxWidth / 2 + x * padding + seq * this.wordSize * letterWidth,
                 this.canvas.height / 2 + y * padding,
               ),
               radius: this.wordSize / 2,
@@ -465,8 +466,14 @@ class World {
   }
 }
 
-async function getCharacterMatrix() {
-  return (await fetch("./src/mappings.json")).json()
+async function getCharacterMatrix(glyph) {
+  const defaultGlyph = "./src/mappings.json"
+  const glyphs = {
+    "5x5": "./src/mappings.json",
+    "8x8": "./src/mappings-8x8.json",
+  }
+  const url = glyphs[glyph] ?? defaultGlyph
+  return (await fetch(url)).json()
 }
 
 function registerEventListeners(world, canvas) {
@@ -532,7 +539,8 @@ async function main() {
   const impactEnabled = (params.get("i") ?? "1") === "1"
   const cursorEnabled = (params.get("c") ?? "1") === "1"
   const gameModeEnabled = (params.get("g") ?? "0") === "1"
-  const matrix = await getCharacterMatrix()
+  const glyph = params.get("h") ?? "5x5"
+  const matrix = await getCharacterMatrix(glyph)
   const canvas = new Canvas(document, document.body, backgroundColor)
 
   // run app
