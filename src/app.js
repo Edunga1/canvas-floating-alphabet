@@ -258,9 +258,12 @@ class World {
 
     /** @type {Particle[]} */
     this.fragments = []
+    this.started = false
   }
 
   run(word = "unknown") {
+    if (this.started || !this.canvas.width || !this.canvas.height) return
+    this.started = true
     const that = this
     this.#initWord(word)
 
@@ -562,6 +565,7 @@ async function main() {
 
   window.addEventListener("resize", () => {
     world.resize(window.innerWidth, window.innerHeight)
+    world.run(word)
   })
 }
 
